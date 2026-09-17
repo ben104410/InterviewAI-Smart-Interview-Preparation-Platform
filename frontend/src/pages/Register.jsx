@@ -30,6 +30,7 @@ const Register = () => {
 
       navigate("/");
     } catch (error) {
+      console.error(error);
       setError("Registration failed. Please check your details.");
     }
   };

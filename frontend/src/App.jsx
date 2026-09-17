@@ -7,6 +7,7 @@ import {
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import LandingPage from "./pages/LandingPage";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./components/DashboardLayout";
@@ -14,41 +15,17 @@ import DashboardLayout from "./components/DashboardLayout";
 function App() {
   return (
     <BrowserRouter>
-
       <Routes>
-
-        {/* Public Routes */}
-
-        <Route
-          path="/"
-          element={<Login />}
-        />
-
-        <Route
-          path="/register"
-          element={<Register />}
-        />
-
-
-        {/* Protected Routes */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         <Route element={<ProtectedRoute />}>
-
-          <Route
-            element={<DashboardLayout />}
-          >
-
-            <Route
-              path="/dashboard"
-              element={<Dashboard />}
-            />
-
+          <Route element={<DashboardLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
           </Route>
-
         </Route>
-
       </Routes>
-
     </BrowserRouter>
   );
 }
