@@ -47,11 +47,12 @@ a {
 }
 
 .auth-container {
+  width: 100%;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 32px;
+  padding: 0;
   background:
     radial-gradient(circle at 20% 20%, rgba(124, 156, 255, 0.26), transparent 22%),
     radial-gradient(circle at 80% 30%, rgba(14, 165, 233, 0.18), transparent 20%),
@@ -60,13 +61,17 @@ a {
 
 .auth-card {
   width: 100%;
-  max-width: 440px;
-  background: rgba(15, 23, 42, 0.66);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  padding: 38px 32px;
-  border-radius: 22px;
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(16px);
+  max-width: none;
+  min-height: 100vh;
+  background: rgba(15, 23, 42, 0.35);
+  border: none;
+  padding: 64px 32px;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .auth-card h1 {
