@@ -645,3 +645,464 @@
     flex-direction: column;
   }
 }
+
+/* ================================
+   RESUME ANALYSIS
+================================ */
+
+.resume-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.resume-upload-card {
+  max-width: 750px;
+  margin: 35px auto;
+  padding: 45px;
+  background: #ffffff;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.resume-upload-icon {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 20px;
+  border-radius: 18px;
+  background: #2563eb;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.resume-upload-card h2 {
+  color: #172033;
+  margin-bottom: 10px;
+}
+
+.resume-upload-card > p {
+  max-width: 600px;
+  margin: 0 auto 30px;
+  color: #6b7280;
+  line-height: 1.7;
+}
+
+.upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 190px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.upload-area:hover {
+  border-color: #2563eb;
+  background: #f8fbff;
+}
+
+.upload-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+
+.upload-area strong {
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.upload-area span {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.upload-area input {
+  display: none;
+}
+
+.selected-file {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  padding: 15px;
+  background: #f8fafc;
+  border-radius: 10px;
+  text-align: left;
+}
+
+.selected-file div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.selected-file strong {
+  color: #374151;
+  font-size: 14px;
+}
+
+.selected-file span {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.selected-file button {
+  border: none;
+  background: transparent;
+  color: #dc2626;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.resume-analyze-button {
+  margin-top: 20px;
+  min-width: 180px;
+}
+
+.analysis-loading-text {
+  margin-top: 15px !important;
+  margin-bottom: 0 !important;
+  font-size: 13px;
+}
+
+.resume-results {
+  margin-top: 30px;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.results-header > div > span {
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+}
+
+.results-header h2 {
+  margin: 6px 0;
+  color: #172033;
+}
+
+.results-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.analysis-card,
+.analysis-score-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf0f4;
+}
+
+.analysis-card h3 {
+  margin: 0 0 15px;
+  color: #172033;
+}
+
+.analysis-card p {
+  color: #4b5563;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.analysis-score-card {
+  grid-column: span 2;
+  text-align: center;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.analysis-score-card span {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.analysis-score-card strong {
+  font-size: 48px;
+  margin-top: 8px;
+  display: inline-block;
+}
+
+.analysis-score-card small {
+  font-size: 18px;
+}
+
+.analysis-item {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.analysis-item span {
+  min-width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.analysis-item p {
+  margin: 0;
+}
+
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.skill-tag {
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 8px 13px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.full-width {
+  grid-column: span 2;
+}
+
+@media (max-width: 768px) {
+  .resume-upload-card {
+    padding: 25px;
+  }
+
+  .results-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-score-card,
+  .full-width {
+    grid-column: span 1;
+  }
+}
+/* ================================
+   STATISTICS PAGE
+================================ */
+
+.statistics-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.statistics-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 25px;
+  border: 1px solid #edf0f4;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.05);
+}
+
+.statistics-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.statistics-card h2 {
+  margin: 0 0 7px;
+  color: #172033;
+}
+
+.statistics-card-header p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.performance-list {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.performance-row {
+  width: 100%;
+}
+
+.performance-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.performance-info > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.performance-info strong {
+  color: #374151;
+}
+
+.performance-info span {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.performance-bar {
+  height: 10px;
+  width: 100%;
+  background: #e5e7eb;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.performance-bar-fill {
+  height: 100%;
+  background: #2563eb;
+  border-radius: 20px;
+  transition: width 0.5s ease;
+}
+
+.statistics-empty {
+  padding: 45px 20px;
+  text-align: center;
+}
+
+.statistics-empty > div {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 15px;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 25px;
+}
+
+.statistics-empty h3 {
+  color: #172033;
+  margin-bottom: 8px;
+}
+
+.statistics-empty p {
+  color: #6b7280;
+}
+
+.statistics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.score-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.score-overview-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-overview-item > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.score-overview-item strong {
+  color: #374151;
+}
+
+.score-overview-item p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.score-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.score-dot.high {
+  background: #059669;
+}
+
+.score-dot.medium {
+  background: #d97706;
+}
+
+.score-dot.low {
+  background: #dc2626;
+}
+
+.insight-text {
+  color: #4b5563;
+  line-height: 1.8;
+  margin-top: 20px;
+}
+
+.insight-text strong {
+  color: #2563eb;
+}
+
+@media (max-width: 768px) {
+  .statistics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .statistics-card-header {
+    align-items: flex-start;
+  }
+
+  .performance-info {
+    gap: 15px;
+  }
+}

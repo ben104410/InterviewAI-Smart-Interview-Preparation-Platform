@@ -16,7 +16,7 @@ class ResumeUploadView(APIView):
 	permission_classes = [IsAuthenticated]
 
 	def post(self, request):
-		file = request.FILES.get("file")
+		file = request.FILES.get("file") or request.FILES.get("resume")
 
 		if not file:
 			return Response({"error": "File required"}, status=400)
@@ -31,23 +31,23 @@ class ResumeUploadView(APIView):
 		text = extract_text_from_pdf(resume.file.path)
 
 		# AI analysis
-		# Prefer local analyzer if available
 		try:
 			result = analyze_resume_local(text)
 		except Exception:
 			result = analyze_resume(text)
 
 		# Parse JSON safely
-		try:
-			data = json.loads(result)
-		except Exception:
-			return Response({"error": "AI returned invalid JSON", "raw": result}, status=500)
+		if isinstance(result, str):
+			try:
+				data = json.loads(result)
+			except Exception:
+				return Response({"error": "AI returned invalid JSON", "raw": result}, status=500)
+		else:
+			data = result
 
 		# Save analysis
-		resume.analysis = result
+		resume.analysis = json.dumps(data) if isinstance(data, dict) else str(data)
 		resume.save()
 
-		return Response({
-			"id": resume.id,
-			"analysis": data
-		})
+		return Response(data)
+

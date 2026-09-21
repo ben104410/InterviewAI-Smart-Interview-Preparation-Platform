@@ -12,6 +12,8 @@ import Interview from "./pages/interview";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./components/DashboardLayout";
 import InterviewHistory from "./pages/InterviewHistory";
+import ResumeAnalysis from "./pages/ResumeAnalysis";
+import Statistics from "./pages/Statistics";
 function App() {
   return (
     <BrowserRouter>
@@ -25,6 +27,8 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/interview" element={<Interview />} />
             <Route path="/history" element={<InterviewHistory />} />
+            <Route path="/resume" element={<ResumeAnalysis />} />
+            <Route path="/statistics" element={<Statistics />} />
           </Route>
         </Route>
       </Routes>

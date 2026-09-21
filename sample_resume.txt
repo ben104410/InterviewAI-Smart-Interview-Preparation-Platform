@@ -1,0 +1,1 @@
+Python developer with Django, REST APIs, SQL, and AWS experience. Experience in microservices and CI/CD.
