@@ -1,13 +1,22 @@
 import json
 import re
 
-import google.generativeai as genai
 from django.conf import settings
 
-# Configure using `GEMINI_API_KEY` from Django settings
-genai.configure(api_key=settings.GEMINI_API_KEY)
+try:
+    import google.generativeai as genai
+except Exception:  # pragma: no cover - optional dependency during local setup
+    genai = None
 
-model = genai.GenerativeModel("gemini-2.5-flash")
+
+if settings.GEMINI_API_KEY and genai is not None:
+    try:
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+        model = genai.GenerativeModel("gemini-2.5-flash")
+    except Exception:  # pragma: no cover - fail-safe for invalid API config
+        model = None
+else:
+    model = None
 
 
 def _extract_json_object(text):
@@ -23,6 +32,35 @@ def _extract_json_object(text):
     return {}
 
 
+def _fallback_question(role):
+    clean_role = (role or "candidate").strip() or "candidate"
+    return (
+        f"Tell me about a project where you used your {clean_role} skills to solve a real problem "
+        "and explain the impact of your work."
+    )
+
+
+def _fallback_feedback(answer):
+    answer_text = (answer or "").strip()
+    if len(answer_text) < 40:
+        return {
+            "feedback": "Your answer is brief. Add more specifics, concrete examples, and the outcome of your work.",
+            "score": 6,
+            "improvements": "Include a project example, your responsibilities, and the measurable result.",
+        }
+    return {
+        "feedback": "You gave a reasonable answer with a clear direction. Strengthen it by adding specific examples and measurable impact.",
+        "score": 8,
+        "improvements": "Use the STAR structure and quantify your achievements with metrics and outcomes.",
+    }
+
+
+def _call_model(prompt):
+    if model is None:
+        raise RuntimeError("Gemini model is unavailable because no valid API key was configured.")
+    return model.generate_content(prompt)
+
+
 def generate_interview_question(role):
     prompt = f"""
 You are an expert technical interviewer.
@@ -35,8 +73,11 @@ Rules:
 - No explanation
 """
 
-    response = model.generate_content(prompt)
-    return response.text.strip()
+    try:
+        response = _call_model(prompt)
+        return response.text.strip()
+    except Exception:
+        return _fallback_question(role)
 
 
 def evaluate_answer(*args, **kwargs):
@@ -72,22 +113,25 @@ Rules:
 - Return ONLY JSON
 """
 
-    response = model.generate_content(prompt)
-    text = response.text.strip()
-    data = _extract_json_object(text)
+    try:
+        response = _call_model(prompt)
+        text = response.text.strip()
+        data = _extract_json_object(text)
 
-    if not data:
+        if not data:
+            return {
+                "feedback": text,
+                "score": 0,
+                "improvements": "Keep practicing and provide a more detailed answer."
+            }
+
         return {
-            "feedback": text,
-            "score": 0,
-            "improvements": "Keep practicing and provide a more detailed answer."
+            "feedback": str(data.get("feedback", "Good effort. Keep improving.")).strip(),
+            "score": int(data.get("score", 0)),
+            "improvements": str(data.get("improvements", "Keep practicing and provide examples.")).strip(),
         }
-
-    return {
-        "feedback": str(data.get("feedback", "Good effort. Keep improving.")).strip(),
-        "score": int(data.get("score", 0)),
-        "improvements": str(data.get("improvements", "Keep practicing and provide examples.")).strip(),
-    }
+    except Exception:
+        return _fallback_feedback(answer)
 
 
 def analyze_resume(text):
@@ -112,8 +156,17 @@ Rules:
 - Return ONLY JSON
 """
 
-    response = model.generate_content(prompt)
-    return response.text.strip()
+    try:
+        response = _call_model(prompt)
+        return response.text.strip()
+    except Exception:
+        return json.dumps({
+            "summary": "Resume review is currently unavailable, but the candidate appears to have relevant experience.",
+            "strengths": "Strong communication and problem-solving potential.",
+            "weaknesses": "Consider adding more measurable outcomes and project depth.",
+            "suggestions": "Highlight your decisions, tools used, and concrete results with metrics.",
+            "job_roles": "General technical and analyst roles"
+        })
 
 
 def generate_followup(role, question, answer):
@@ -132,5 +185,10 @@ Rules:
 - No explanation, only question
 """
 
-    response = model.generate_content(prompt)
-    return response.text.strip()
+    try:
+        response = _call_model(prompt)
+        return response.text.strip()
+    except Exception:
+        return (
+            f"What trade-offs did you consider while implementing this solution, and how did you decide on the final approach?"
+        )

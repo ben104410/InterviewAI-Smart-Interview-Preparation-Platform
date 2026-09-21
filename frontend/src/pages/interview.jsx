@@ -8,6 +8,7 @@ const Interview = () => {
 
   const [started, setStarted] = useState(false);
   const [role, setRole] = useState("");
+  const [interviewId, setInterviewId] = useState(null);
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState("");
@@ -30,6 +31,7 @@ const Interview = () => {
         role: role.trim(),
       });
 
+      setInterviewId(response.data.interview_id ?? response.data.id ?? null);
       setQuestion(response.data.question);
       setStarted(true);
       setAnswer("");
@@ -57,14 +59,17 @@ const Interview = () => {
     setError("");
 
     try {
+      if (!interviewId) {
+        throw new Error("Interview session is missing. Please start again.");
+      }
+
       const response = await api.post("/interviews/chat/", {
-        role,
-        question,
+        interview_id: interviewId,
         answer,
       });
 
       setFeedback(response.data.feedback);
-      setScore(response.data.score);
+      setScore(response.data.current_score ?? response.data.score ?? null);
     } catch (err) {
       console.error(err);
       setError(
@@ -80,6 +85,7 @@ const Interview = () => {
   const resetInterview = () => {
     setStarted(false);
     setRole("");
+    setInterviewId(null);
     setQuestion("");
     setAnswer("");
     setFeedback("");
