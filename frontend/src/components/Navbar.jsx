@@ -12,7 +12,11 @@ const Navbar = () => {
 
   return (
     <header className="navbar">
-      <div className="navbar-logo">
+      <div
+        className="navbar-logo"
+        onClick={() => navigate("/dashboard")}
+        style={{ cursor: "pointer" }}
+      >
         <span className="logo-icon">IA</span>
 
         <div>

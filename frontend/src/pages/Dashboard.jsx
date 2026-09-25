@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+
   const [stats, setStats] = useState({
     total_interviews: 0,
     average_score: 0,
@@ -51,7 +54,10 @@ const Dashboard = () => {
           </p>
         </div>
 
-        <button className="start-interview-btn">
+        <button
+          className="start-interview-btn"
+          onClick={() => navigate("/interview")}
+        >
           Start AI Interview
         </button>
       </div>
@@ -151,17 +157,17 @@ const Dashboard = () => {
 
           <h2>Quick Actions</h2>
 
-          <button>
+          <button onClick={() => navigate("/interview")}>
             <span>◉</span>
             Start AI Interview
           </button>
 
-          <button>
+          <button onClick={() => navigate("/resume")}>
             <span>▤</span>
             Analyze Resume
           </button>
 
-          <button>
+          <button onClick={() => navigate("/statistics")}>
             <span>▥</span>
             View Statistics
           </button>

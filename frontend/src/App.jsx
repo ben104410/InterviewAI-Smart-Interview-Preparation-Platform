@@ -14,6 +14,7 @@ import DashboardLayout from "./components/DashboardLayout";
 import InterviewHistory from "./pages/InterviewHistory";
 import ResumeAnalysis from "./pages/ResumeAnalysis";
 import Statistics from "./pages/Statistics";
+import Profile from "./pages/Profile";
 function App() {
   return (
     <BrowserRouter>
@@ -29,6 +30,7 @@ function App() {
             <Route path="/history" element={<InterviewHistory />} />
             <Route path="/resume" element={<ResumeAnalysis />} />
             <Route path="/statistics" element={<Statistics />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>
       </Routes>
