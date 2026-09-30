@@ -1,17 +1,18 @@
 import {
   createContext,
-  useContext,
   useEffect,
   useState,
 } from "react";
 
 import api from "../api";
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => (
+    Boolean(localStorage.getItem("access") || localStorage.getItem("refresh"))
+  ));
 
   useEffect(() => {
     const clearUser = () => setUser(null);
@@ -20,7 +21,6 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem("access");
 
     if (!token && !localStorage.getItem("refresh")) {
-      setIsLoading(false);
       return () => window.removeEventListener("auth:logout", clearUser);
     }
 
@@ -84,7 +84,3 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
- export const useAuth = () =>
-  {
-  return useContext(AuthContext);
-};
