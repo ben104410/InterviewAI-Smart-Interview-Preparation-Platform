@@ -3,15 +3,37 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import RegisterSerializer
+from .serializers import AccountProfileSerializer, RegisterSerializer
 
 class DashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         return Response({
-            "message": f"Welcome {request.user.username}"
+            "message": f"Welcome {request.user.username}",
+            "username": request.user.username,
+            "email": request.user.email,
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
         })
+
+
+class AccountProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = AccountProfileSerializer(request.user)
+        return Response(serializer.data)
+
+    def put(self, request):
+        serializer = AccountProfileSerializer(
+            request.user,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 class RegisterView(APIView):

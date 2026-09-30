@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api";
+import api, { getApiErrorMessage } from "../api";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -12,8 +12,10 @@ const Register = () => {
   });
 
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
+    setError("");
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -25,13 +27,15 @@ const Register = () => {
 
     try {
       setError("");
+      setSubmitting(true);
 
       await api.post("/accounts/register/", formData);
 
       navigate("/");
-    } catch (error) {
-      console.error(error);
-      setError("Registration failed. Please check your details.");
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, "Registration failed. Please check your details and try again."));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -42,10 +46,12 @@ const Register = () => {
 
         <p>Start preparing for your next interview.</p>
 
-        {error && <div className="error">{error}</div>}
+        {error && <div className="error" role="alert">{error}</div>}
 
         <form onSubmit={handleSubmit}>
+          <label className="visually-hidden" htmlFor="register-username">Username</label>
           <input
+            id="register-username"
             name="username"
             type="text"
             placeholder="Username"
@@ -54,7 +60,9 @@ const Register = () => {
             required
           />
 
+          <label className="visually-hidden" htmlFor="register-email">Email</label>
           <input
+            id="register-email"
             name="email"
             type="email"
             placeholder="Email"
@@ -63,7 +71,9 @@ const Register = () => {
             required
           />
 
+          <label className="visually-hidden" htmlFor="register-password">Password</label>
           <input
+            id="register-password"
             name="password"
             type="password"
             placeholder="Password"
@@ -72,19 +82,20 @@ const Register = () => {
             required
           />
 
-          <button type="submit">
-            Create Account
+          <button type="submit" disabled={submitting}>
+            {submitting ? "Creating account..." : "Create Account"}
           </button>
         </form>
 
         <p>
           Already have an account?{" "}
-          <span
+          <button
+            type="button"
             className="link"
             onClick={() => navigate("/")}
           >
             Sign In
-          </span>
+          </button>
         </p>
       </div>
     </div>

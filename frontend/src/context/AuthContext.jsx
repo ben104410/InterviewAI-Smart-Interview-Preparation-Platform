@@ -11,30 +11,32 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const clearUser = () => setUser(null);
+    window.addEventListener("auth:logout", clearUser);
+
     const token = localStorage.getItem("access");
 
-    if (token) {
-      const loadUser = async () => {
-        try {
-          const response = await api.get(
-            "/accounts/dashboard/"
-          );
-
-          setUser({
-            username: response.data.username,
-          });
-        } catch (error) {
-                console.error(error);
-          localStorage.removeItem("access");
-          localStorage.removeItem("refresh");
-          setUser(null);
-        }
-      };
-
-      loadUser();
+    if (!token && !localStorage.getItem("refresh")) {
+      setIsLoading(false);
+      return () => window.removeEventListener("auth:logout", clearUser);
     }
+
+    api.get("/accounts/dashboard/")
+      .then(({ data }) => {
+        setUser({
+          username: data.username,
+          email: data.email,
+          first_name: data.first_name,
+          last_name: data.last_name,
+        });
+      })
+      .catch(() => setUser(null))
+      .finally(() => setIsLoading(false));
+
+    return () => window.removeEventListener("auth:logout", clearUser);
   }, []);
 
   const login = async (username, password) => {
@@ -56,6 +58,7 @@ export const AuthProvider = ({ children }) => {
     setUser({
       username,
     });
+    setIsLoading(false);
 
     return response.data;
   };
@@ -71,6 +74,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        isLoading,
         login,
         logout,
       }}
