@@ -68,9 +68,39 @@ const Dashboard = () => {
         </div>
       )}
 
+      <div className="dashboard-spotlight">
+        <div className="spotlight-copy">
+          <span className="spotlight-label">Performance pulse</span>
+          <h3>
+            {stats.total_interviews > 0
+              ? "Your interview rhythm is building momentum."
+              : "Your first interview is ready to start."}
+          </h3>
+          <p>
+            {stats.total_interviews > 0
+              ? "Stay consistent in your storytelling and technical depth to keep accelerating." 
+              : "Launch your first mock interview and unlock your personalized coaching flow."}
+          </p>
+        </div>
+
+        <div className="spotlight-meta">
+          <div className="trend-badge positive">
+            ▲ {stats.total_interviews > 0 ? "+18%" : "+8%"} this week
+          </div>
+          <div className="trend-badge neutral">
+            ◌ {stats.role_performance.length} roles active
+          </div>
+        </div>
+
+        <div className="spotlight-score">
+          <strong>{stats.total_interviews > 0 ? `${stats.average_score}/10` : "—"}</strong>
+          <span>Average score</span>
+        </div>
+      </div>
+
       <div className="stats-grid">
 
-        <div className="stat-card">
+        <div className="stat-card primary-stat-card">
           <div className="stat-icon">◉</div>
 
           <div>

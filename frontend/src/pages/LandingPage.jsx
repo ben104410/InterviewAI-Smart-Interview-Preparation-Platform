@@ -2,14 +2,17 @@ import { Link } from "react-router-dom";
 
 const features = [
   {
+    icon: "✦",
     title: "AI Mock Interviews",
     text: "Practice with realistic interview flows tailored to your target role and seniority.",
   },
   {
+    icon: "◎",
     title: "Instant Feedback",
     text: "Get actionable coaching on confidence, clarity, and technical depth after each session.",
   },
   {
+    icon: "▣",
     title: "Resume Intelligence",
     text: "Analyze your profile and uncover strengths, gaps, and interview-ready improvements.",
   },
@@ -19,6 +22,24 @@ const stats = [
   { value: "12k+", label: "interviews completed" },
   { value: "4.9/5", label: "candidate satisfaction" },
   { value: "72%", label: "faster prep cycles" },
+];
+
+const journey = [
+  {
+    step: "01",
+    title: "Pick your role",
+    text: "Start with the position you want to land and tailor your prep to the real interview brief.",
+  },
+  {
+    step: "02",
+    title: "Answer like a pro",
+    text: "Respond to AI-driven questions that adapt to your strengths and the role’s requirements.",
+  },
+  {
+    step: "03",
+    title: "Improve with insight",
+    text: "Review structured feedback, key strengths, and the next steps to close each gap.",
+  },
 ];
 
 const LandingPage = () => {
@@ -40,6 +61,7 @@ const LandingPage = () => {
         <nav className="landing-nav">
           <a href="#features">Features</a>
           <a href="#outcomes">Outcomes</a>
+          <a href="#journey">How it works</a>
           <Link to="/login">Login</Link>
           <Link to="/register" className="nav-cta">
             Get started
@@ -104,14 +126,48 @@ const LandingPage = () => {
           </div>
         </section>
 
+        <section className="brand-strip">
+          <div className="brand-pill">Resume reviewed</div>
+          <div className="brand-pill">Live AI feedback</div>
+          <div className="brand-pill">Role-based prep</div>
+          <div className="brand-pill">Progress tracking</div>
+        </section>
+
         <section className="feature-grid" id="features">
           {features.map((feature) => (
             <article key={feature.title} className="glass-card feature-card">
-              <div className="feature-icon">✦</div>
+              <div className="feature-icon">{feature.icon}</div>
               <h3>{feature.title}</h3>
               <p>{feature.text}</p>
             </article>
           ))}
+        </section>
+
+        <section className="journey-panel" id="journey">
+          <div className="section-heading">
+            <span className="eyebrow">How it works</span>
+            <h2>Practice with a workflow built for outcomes.</h2>
+          </div>
+
+          <div className="journey-grid">
+            {journey.map((item) => (
+              <article key={item.step} className="glass-card journey-item">
+                <span className="journey-step">{item.step}</span>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="cta-band">
+          <div>
+            <span className="eyebrow">Career momentum</span>
+            <h2>Build interview confidence before the real meeting.</h2>
+          </div>
+          <Link to="/register" className="primary-btn">
+            Create your profile
+          </Link>
         </section>
       </main>
     </div>

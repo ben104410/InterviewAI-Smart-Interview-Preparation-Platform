@@ -35,6 +35,32 @@ const InterviewHistory = () => {
     fetchHistory();
   }, []);
 
+  const groupedInterviews = {
+    "Main Interview": interviews.filter(
+      (interview) => !interview.is_followup
+    ),
+    "Follow-up Interview": interviews.filter(
+      (interview) => interview.is_followup
+    ),
+  };
+
+  const groupedByRole = Object.fromEntries(
+    Object.entries(groupedInterviews).map(([type, items]) => {
+      const byRole = items.reduce((acc, interview) => {
+        const role = interview.role || "Unknown Role";
+
+        if (!acc[role]) {
+          acc[role] = [];
+        }
+
+        acc[role].push(interview);
+        return acc;
+      }, {});
+
+      return [type, byRole];
+    })
+  );
+
   const getScoreClass = (score) => {
     const value = Number(score);
 
@@ -98,76 +124,94 @@ const InterviewHistory = () => {
         </div>
       ) : (
         <div className="history-list">
-          {interviews.map((interview) => (
-            <div
-              className="history-card"
-              key={interview.id}
-            >
-              <div className="history-card-top">
-                <div>
-                  <span className="history-label">
-                    Job Role
-                  </span>
+          {Object.entries(groupedByRole).map(([type, roles]) => {
+            const roleEntries = Object.entries(roles);
 
-                  <h2>
-                    {interview.role || "Unknown Role"}
-                  </h2>
-                </div>
+            if (roleEntries.length === 0) return null;
 
-                <div
-                  className={`history-score ${getScoreClass(
-                    interview.score
-                  )}`}
-                >
-                  <strong>
-                    {interview.score ?? 0}
-                  </strong>
-                  <span>/10</span>
-                </div>
+            return (
+              <div key={type} className="history-group">
+                <h2 className="history-group-title">{type}</h2>
+
+                {roleEntries.map(([role, items]) => (
+                  <div key={`${type}-${role}`} className="history-role-group">
+                    <h3 className="history-role-title">{role}</h3>
+
+                    {items.map((interview) => (
+                      <div
+                        className="history-card"
+                        key={interview.id}
+                      >
+                        <div className="history-card-top">
+                          <div>
+                            <span className="history-label">
+                              Job Role
+                            </span>
+
+                            <h2>
+                              {interview.role || "Unknown Role"}
+                            </h2>
+                          </div>
+
+                          <div
+                            className={`history-score ${getScoreClass(
+                              interview.score
+                            )}`}
+                          >
+                            <strong>
+                              {interview.score ?? 0}
+                            </strong>
+                            <span>/10</span>
+                          </div>
+                        </div>
+
+                        <div className="history-question">
+                          <span>Question</span>
+
+                          <p>
+                            {interview.question ||
+                              "No question available."}
+                          </p>
+                        </div>
+
+                        {interview.answer && (
+                          <div className="history-answer">
+                            <span>Your Answer</span>
+
+                            <p>{interview.answer}</p>
+                          </div>
+                        )}
+
+                        {interview.feedback && (
+                          <div className="history-feedback">
+                            <span>AI Feedback</span>
+
+                            <p>{interview.feedback}</p>
+                          </div>
+                        )}
+
+                        <div className="history-footer">
+                          <span>
+                            {interview.created_at
+                              ? new Date(
+                                  interview.created_at
+                                ).toLocaleString()
+                              : "Date unavailable"}
+                          </span>
+
+                          <span className="followup-badge">
+                            {interview.is_followup
+                              ? "Follow-up"
+                              : "Main"}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
               </div>
-
-              <div className="history-question">
-                <span>Question</span>
-
-                <p>
-                  {interview.question ||
-                    "No question available."}
-                </p>
-              </div>
-
-              {interview.answer && (
-                <div className="history-answer">
-                  <span>Your Answer</span>
-
-                  <p>{interview.answer}</p>
-                </div>
-              )}
-
-              {interview.feedback && (
-                <div className="history-feedback">
-                  <span>AI Feedback</span>
-
-                  <p>{interview.feedback}</p>
-                </div>
-              )}
-
-              <div className="history-footer">
-                <span>
-                  {interview.created_at
-                    ? new Date(
-                        interview.created_at
-                      ).toLocaleString()
-                    : "Date unavailable"}
-                </span>
-
-                {interview.is_followup && (
-                  <span className="followup-badge">
-                    Follow-up
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

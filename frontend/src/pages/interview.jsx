@@ -1,7 +1,8 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
+
+const TOTAL_QUESTIONS = 3;
 
 const Interview = () => {
   const navigate = useNavigate();
@@ -13,9 +14,37 @@ const Interview = () => {
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState("");
   const [score, setScore] = useState(null);
+  const [currentQuestionNumber, setCurrentQuestionNumber] = useState(1);
+  const [sessionScores, setSessionScores] = useState([]);
+  const [pendingNextQuestion, setPendingNextQuestion] = useState(null);
+  const [pendingNextInterviewId, setPendingNextInterviewId] = useState(null);
+  const [showNextQuestion, setShowNextQuestion] = useState(false);
+  const [finalSummary, setFinalSummary] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const finalizeSession = (latestScores) => {
+    const totalScore = latestScores.reduce((sum, value) => sum + value, 0);
+    const averageScore = latestScores.length
+      ? (totalScore / latestScores.length).toFixed(1)
+      : "0.0";
+
+    setFinalSummary({
+      totalScore,
+      averageScore,
+      answeredQuestions: latestScores.length,
+      totalQuestions: TOTAL_QUESTIONS,
+    });
+
+    setFeedback("");
+    setScore(null);
+    setAnswer("");
+    setQuestion("");
+    setPendingNextQuestion(null);
+    setPendingNextInterviewId(null);
+    setShowNextQuestion(false);
+  };
 
   const startInterview = async () => {
     if (!role.trim()) {
@@ -34,9 +63,15 @@ const Interview = () => {
       setInterviewId(response.data.interview_id ?? response.data.id ?? null);
       setQuestion(response.data.question);
       setStarted(true);
+      setCurrentQuestionNumber(1);
       setAnswer("");
       setFeedback("");
       setScore(null);
+      setSessionScores([]);
+      setPendingNextQuestion(null);
+      setPendingNextInterviewId(null);
+      setShowNextQuestion(false);
+      setFinalSummary(null);
     } catch (err) {
       console.error(err);
       setError(
@@ -68,8 +103,26 @@ const Interview = () => {
         answer,
       });
 
+      const currentValue = Number(
+        response.data.current_score ?? response.data.score ?? 0
+      );
+
+      const updatedScores = [...sessionScores, currentValue];
+
+      setSessionScores(updatedScores);
       setFeedback(response.data.feedback);
-      setScore(response.data.current_score ?? response.data.score ?? null);
+      setScore(currentValue);
+
+      const nextQuestion = response.data.followup_question || null;
+
+      if (!nextQuestion || currentQuestionNumber >= TOTAL_QUESTIONS) {
+        finalizeSession(updatedScores);
+        return;
+      }
+
+      setPendingNextQuestion(nextQuestion);
+      setPendingNextInterviewId(response.data.followup_id ?? interviewId);
+      setShowNextQuestion(true);
     } catch (err) {
       console.error(err);
       setError(
@@ -82,6 +135,23 @@ const Interview = () => {
     }
   };
 
+  const handleNextQuestion = () => {
+    if (!pendingNextQuestion) {
+      finalizeSession(sessionScores);
+      return;
+    }
+
+    setQuestion(pendingNextQuestion);
+    setInterviewId(pendingNextInterviewId ?? interviewId);
+    setAnswer("");
+    setFeedback("");
+    setScore(null);
+    setPendingNextQuestion(null);
+    setPendingNextInterviewId(null);
+    setShowNextQuestion(false);
+    setCurrentQuestionNumber((previous) => previous + 1);
+  };
+
   const resetInterview = () => {
     setStarted(false);
     setRole("");
@@ -90,6 +160,12 @@ const Interview = () => {
     setAnswer("");
     setFeedback("");
     setScore(null);
+    setCurrentQuestionNumber(1);
+    setSessionScores([]);
+    setPendingNextQuestion(null);
+    setPendingNextInterviewId(null);
+    setShowNextQuestion(false);
+    setFinalSummary(null);
     setError("");
   };
 
@@ -161,37 +237,39 @@ const Interview = () => {
               <span className="ai-badge">AI Interview</span>
             </div>
 
-            <div className="question-box">
-              <span>Question</span>
+            {!finalSummary && (
+              <>
+                <div className="question-box">
+                  <span>
+                    Question {currentQuestionNumber} of {TOTAL_QUESTIONS}
+                  </span>
 
-              <h3>{question}</h3>
-            </div>
+                  <h3>{question}</h3>
+                </div>
 
-            <div className="answer-section">
-              <label htmlFor="answer">
-                Your Answer
-              </label>
+                <div className="answer-section">
+                  <label htmlFor="answer">Your Answer</label>
 
-              <textarea
-                id="answer"
-                rows="8"
-                placeholder="Type your answer here..."
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-              />
+                  <textarea
+                    id="answer"
+                    rows="8"
+                    placeholder="Type your answer here..."
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
+                  />
 
-              <button
-                className="primary-button"
-                onClick={submitAnswer}
-                disabled={loading}
-              >
-                {loading
-                  ? "Evaluating Answer..."
-                  : "Submit Answer"}
-              </button>
-            </div>
+                  <button
+                    className="primary-button"
+                    onClick={submitAnswer}
+                    disabled={loading}
+                  >
+                    {loading ? "Evaluating Answer..." : "Submit Answer"}
+                  </button>
+                </div>
+              </>
+            )}
 
-            {feedback && (
+            {feedback && !finalSummary && (
               <div className="feedback-section">
                 <div className="feedback-header">
                   <div>
@@ -205,8 +283,60 @@ const Interview = () => {
                   </div>
                 </div>
 
+                <div className="feedback-content">{feedback}</div>
+
+                <div className="feedback-actions">
+                  {showNextQuestion ? (
+                    <button
+                      className="primary-button"
+                      onClick={handleNextQuestion}
+                      disabled={loading}
+                    >
+                      Next Question
+                    </button>
+                  ) : (
+                    <button
+                      className="primary-button"
+                      onClick={resetInterview}
+                    >
+                      Start Another Interview
+                    </button>
+                  )}
+
+                  <button
+                    className="secondary-button"
+                    onClick={() => navigate("/history")}
+                  >
+                    View History
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {finalSummary && (
+              <div className="feedback-section">
+                <div className="feedback-header">
+                  <div>
+                    <span>Interview Summary</span>
+                    <h2>Final Results</h2>
+                  </div>
+
+                  <div className="score-circle">
+                    <strong>{finalSummary.averageScore}</strong>
+                    <small>/10</small>
+                  </div>
+                </div>
+
                 <div className="feedback-content">
-                  {feedback}
+                  <p>
+                    You answered {finalSummary.answeredQuestions} out of {finalSummary.totalQuestions} questions.
+                  </p>
+                  <p>
+                    Total score: {finalSummary.totalScore} / {finalSummary.totalQuestions * 10}
+                  </p>
+                  <p>
+                    Average score: {finalSummary.averageScore} / 10
+                  </p>
                 </div>
 
                 <div className="feedback-actions">
