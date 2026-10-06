@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "../api";
+import api, { getAiServiceErrorMessage } from "../api";
 
 const ResumeAnalysis = () => {
   const [file, setFile] = useState(null);
@@ -67,12 +67,7 @@ const ResumeAnalysis = () => {
       setAnalysis(response.data.analysis ?? response.data);
     } catch (err) {
       console.error(err);
-
-      setError(
-        err.response?.data?.detail ||
-          err.response?.data?.error ||
-          "Unable to analyze your resume."
-      );
+      setError(getAiServiceErrorMessage(err, "Unable to connect to the AI service.\n\nPlease try again in a moment."));
     } finally {
       setLoading(false);
     }
@@ -174,14 +169,13 @@ const ResumeAnalysis = () => {
             disabled={!file || loading}
           >
             {loading
-              ? "Analyzing Resume..."
+              ? "AI is analyzing your resume..."
               : "Analyze Resume"}
           </button>
 
           {loading && (
             <p className="analysis-loading-text">
-              AI is reviewing your resume. This may take
-              a few moments...
+              Loading...
             </p>
           )}
         </div>

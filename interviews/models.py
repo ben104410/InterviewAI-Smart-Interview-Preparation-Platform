@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 class Interview(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
     role = models.CharField(max_length=100)
+    focus_area = models.CharField(max_length=100, blank=True, default="")
 
     question = models.TextField()
     answer = models.TextField(blank=True, null=True)

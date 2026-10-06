@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api";
+import api, { getAiServiceErrorMessage } from "../api";
 
 const TOTAL_QUESTIONS = 3;
 
@@ -74,11 +74,7 @@ const Interview = () => {
       setFinalSummary(null);
     } catch (err) {
       console.error(err);
-      setError(
-        err.response?.data?.detail ||
-          err.response?.data?.error ||
-          "Unable to start interview."
-      );
+      setError(getAiServiceErrorMessage(err, "Unable to connect to the AI service.\n\nPlease try again in a moment."));
     } finally {
       setLoading(false);
     }
@@ -125,11 +121,7 @@ const Interview = () => {
       setShowNextQuestion(true);
     } catch (err) {
       console.error(err);
-      setError(
-        err.response?.data?.detail ||
-          err.response?.data?.error ||
-          "Unable to evaluate your answer."
-      );
+      setError(getAiServiceErrorMessage(err, "Unable to connect to the AI service.\n\nPlease try again in a moment."));
     } finally {
       setLoading(false);
     }
@@ -222,8 +214,10 @@ const Interview = () => {
             onClick={startInterview}
             disabled={loading}
           >
-            {loading ? "Starting Interview..." : "Start Interview"}
+            {loading ? "AI is generating your question..." : "Start Interview"}
           </button>
+
+          {loading && <p className="analysis-loading-text">Loading...</p>}
         </div>
       ) : (
         <div className="interview-container">
@@ -263,8 +257,10 @@ const Interview = () => {
                     onClick={submitAnswer}
                     disabled={loading}
                   >
-                    {loading ? "Evaluating Answer..." : "Submit Answer"}
+                    {loading ? "AI is evaluating your answer..." : "Submit Answer"}
                   </button>
+
+                  {loading && <p className="analysis-loading-text">Loading...</p>}
                 </div>
               </>
             )}

@@ -62,3 +62,45 @@ class InterviewOwnershipTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class InterviewLearningPlanTests(APITestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.user = user_model.objects.create_user(
+            username="learner",
+            password="test-password",
+        )
+
+    def test_stats_include_learning_plan_for_recurring_weak_areas(self):
+        focus_areas = [
+            ("REST APIs", 58),
+            ("REST APIs", 62),
+            ("Database optimization", 64),
+            ("Database optimization", 68),
+            ("System design", 61),
+            ("System design", 67),
+            ("Communication", 75),
+            ("Communication", 81),
+        ]
+
+        for focus_area, score in focus_areas:
+            Interview.objects.create(
+                user=self.user,
+                role="Backend Engineer",
+                question="Describe a trade-off in your work.",
+                answer="A thoughtful answer with examples.",
+                feedback="Good effort.",
+                score=score,
+                focus_area=focus_area,
+            )
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get("/api/interviews/stats/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("learning_plan", response.data)
+        self.assertIn("Based on your last 8 interviews", response.data["learning_plan"]["summary"])
+        self.assertEqual(response.data["learning_plan"]["topics"][0]["name"], "REST APIs")
+        self.assertEqual(response.data["learning_plan"]["topics"][0]["confidence"], 60)
+        self.assertIn("Practice 5 REST API questions", response.data["learning_plan"]["recommended_next_steps"])

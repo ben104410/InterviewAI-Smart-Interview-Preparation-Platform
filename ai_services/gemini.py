@@ -58,16 +58,19 @@ def _fallback_feedback(answer):
                 "feedback": "Your answer is brief. Add more specifics, concrete examples, and the outcome of your work.",
                 "score": 6,
                 "improvements": "Include a project example, your responsibilities, and the measurable result.",
+                "focus_area": "Communication",
             },
             {
                 "feedback": "The answer is a good start, but it needs more depth and a clearer example of your contribution.",
                 "score": 7,
                 "improvements": "Explain your role, key decisions, and the result using a structured example.",
+                "focus_area": "Communication",
             },
             {
                 "feedback": "You have potential here, but the response would be stronger with more concrete evidence and business impact.",
                 "score": 5,
                 "improvements": "Share one detailed story, mention trade-offs, and quantify the outcome.",
+                "focus_area": "Problem solving",
             },
         ]
         return _random_choice(variants)
@@ -77,16 +80,19 @@ def _fallback_feedback(answer):
             "feedback": "You gave a reasonable answer with a clear direction. Strengthen it by adding specific examples and measurable impact.",
             "score": 8,
             "improvements": "Use the STAR structure and quantify your achievements with metrics and outcomes.",
+            "focus_area": "Communication",
         },
         {
             "feedback": "Your answer shows good awareness and structure. To make it stronger, connect your actions directly to measurable results.",
             "score": 9,
             "improvements": "Describe the challenge, the decisions you made, and the impact on the team or business.",
+            "focus_area": "Problem solving",
         },
         {
             "feedback": "This was a solid answer with relevant context. Add a sharper example of ownership and the outcome to make it stand out.",
             "score": 8,
             "improvements": "Be more explicit about your contribution and the business value created.",
+            "focus_area": "Ownership",
         },
     ]
     return _random_choice(variants)
@@ -180,7 +186,8 @@ Return STRICT JSON in this format:
 {{
   "feedback": "short constructive feedback",
   "score": 0,
-  "improvements": "what the candidate should improve"
+    "improvements": "what the candidate should improve",
+    "focus_area": "one of Technical depth, Problem solving, Communication, Leadership, Collaboration, Ownership, Product thinking, or Other"
 }}
 
 Rules:
@@ -206,6 +213,7 @@ Rules:
             "feedback": str(data.get("feedback", "Good effort. Keep improving.")).strip(),
             "score": int(data.get("score", 0)),
             "improvements": str(data.get("improvements", "Keep practicing and provide examples.")).strip(),
+            "focus_area": str(data.get("focus_area", "Other")).strip() or "Other",
         }
     except Exception:
         return _fallback_feedback(answer)

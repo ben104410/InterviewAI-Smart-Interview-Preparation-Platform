@@ -10,17 +10,25 @@ const api = axios.create({
   },
 });
 
+export const AI_SERVICE_ERROR_MESSAGE = "Unable to connect to the AI service.\n\nPlease try again in a moment.";
+
 export const getApiErrorMessage = (error, fallback) => {
   const data = error?.response?.data;
 
   if (!data) {
     return error?.request
-      ? "Unable to reach the server. Check your connection and try again."
+      ? AI_SERVICE_ERROR_MESSAGE
       : fallback;
   }
 
   const detail = data.detail || data.message || data.non_field_errors?.[0];
-  if (typeof detail === "string") return detail;
+  if (typeof detail === "string") {
+    const text = detail.toLowerCase();
+    if (text.includes("network") || text.includes("connection") || text.includes("timeout") || text.includes("service unavailable") || text.includes("internal server error") || text.includes("500") || text.includes("503")) {
+      return AI_SERVICE_ERROR_MESSAGE;
+    }
+    return detail;
+  }
 
   const fieldErrors = Object.entries(data)
     .map(([field, messages]) => {
@@ -31,6 +39,8 @@ export const getApiErrorMessage = (error, fallback) => {
 
   return fieldErrors || fallback;
 };
+
+export const getAiServiceErrorMessage = (error, fallback = AI_SERVICE_ERROR_MESSAGE) => getApiErrorMessage(error, fallback);
 
 api.interceptors.request.use(
   (config) => {

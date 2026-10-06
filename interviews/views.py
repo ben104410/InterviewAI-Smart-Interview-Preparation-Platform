@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
@@ -9,6 +11,72 @@ import json
 from .models import Interview
 from ai_services.gemini import generate_interview_question, evaluate_answer, generate_followup
 from .serializers import InterviewSerializer
+
+
+def _recommended_action_for_topic(topic_name):
+    area = (topic_name or "General interview fundamentals").lower()
+
+    if "rest" in area or "api" in area:
+        return "Practice 5 REST API questions"
+    if "database" in area or "sql" in area or "orm" in area or "query" in area:
+        return "Review Django ORM optimization"
+    if "system" in area or "design" in area:
+        return "Attempt a system-design interview"
+    if "communication" in area:
+        return "Practice 5 STAR-format answers"
+    if "leadership" in area:
+        return "Prepare 3 leadership stories with measurable impact"
+    if "problem" in area:
+        return "Walk through 3 debugging-heavy scenario answers"
+    return f"Review {topic_name or 'your weak area'} with 3 focused drills"
+
+
+def _build_learning_plan(interviews):
+    recent = list(
+        interviews.filter(answer__isnull=False)
+        .exclude(answer="")
+        .order_by('-created_at')[:8]
+    )
+
+    if not recent:
+        return {
+            "summary": "Complete a few interviews to generate your AI learning plan.",
+            "topics": [],
+            "recommended_next_steps": [],
+        }
+
+    grouped_scores = defaultdict(list)
+    for interview in recent:
+        focus_area = (interview.focus_area or "General interview fundamentals").strip() or "General interview fundamentals"
+        grouped_scores[focus_area].append(int(interview.score or 0))
+
+    topics = []
+    for name, values in grouped_scores.items():
+        average = round(sum(values) / len(values))
+        topics.append({
+            "name": name,
+            "confidence": int(average),
+            "count": len(values),
+        })
+
+    topics.sort(key=lambda item: (item["confidence"], item["count"]))
+    weak_topics = topics[:3]
+
+    return {
+        "summary": f"Based on your last {len(recent)} interviews:",
+        "topics": [
+            {
+                "name": topic["name"],
+                "confidence": topic["confidence"],
+                "count": topic["count"],
+            }
+            for topic in weak_topics
+        ],
+        "recommended_next_steps": [
+            _recommended_action_for_topic(topic["name"])
+            for topic in weak_topics
+        ],
+    }
 
 
 class InterviewHistoryView(APIView):
@@ -105,6 +173,7 @@ class EvaluateAnswerView(APIView):
         interview.answer = answer
         interview.feedback = data.get("feedback", "")
         interview.score = data.get("score", 0)
+        interview.focus_area = data.get("focus_area", "Other")
         interview.save()
 
         return Response({
@@ -139,7 +208,8 @@ class InterviewStatsView(APIView):
             "average_score": round(avg_score or 0, 2),
             "highest_score": max_score or 0,
             "lowest_score": min_score or 0,
-            "role_performance": role_stats
+            "role_performance": role_stats,
+            "learning_plan": _build_learning_plan(interviews),
         })
 
 
@@ -173,6 +243,7 @@ class InterviewChatView(APIView):
         interview.answer = answer
         interview.feedback = data.get("feedback", "")
         interview.score = data.get("score", 0)
+        interview.focus_area = data.get("focus_area", "Other")
         interview.save()
 
         # Step 2: Generate follow-up question
