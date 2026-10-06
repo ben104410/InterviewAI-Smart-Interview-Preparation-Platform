@@ -1,5 +1,8 @@
-env
 .env
+.env.*
+env/
+venv/
 __pycache__/
 *.py[cod]
+*.pyc
 db.sqlite3

@@ -20,17 +20,17 @@ load_dotenv(BASE_DIR / ".env")
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-local-development-only")
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
-DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
     if host.strip()
 ]
 
-if not DEBUG and not os.getenv("DJANGO_SECRET_KEY"):
+if not DEBUG and not SECRET_KEY:
     raise RuntimeError("DJANGO_SECRET_KEY must be set when DEBUG is disabled.")
 
 
@@ -148,4 +148,4 @@ REST_FRAMEWORK = {
 }
 
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
