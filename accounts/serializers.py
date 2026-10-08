@@ -1,5 +1,6 @@
-from rest_framework import serializers
 from django.contrib.auth.models import User
+from rest_framework import serializers
+
 from .models import AccountProfile
 
 
@@ -22,25 +23,25 @@ class AccountProfileSerializer(serializers.Serializer):
     def to_representation(self, instance):
         profile, _ = AccountProfile.objects.get_or_create(user=instance)
         return {
-            "username": instance.username,
-            "email": instance.email,
-            "first_name": instance.first_name,
-            "last_name": instance.last_name,
-            "field_of_study": profile.field_of_study,
-            "target_role": profile.target_role,
-            "experience_level": profile.experience_level,
-            "preferred_interview_type": profile.preferred_interview_type,
+            'username': instance.username,
+            'email': instance.email,
+            'first_name': instance.first_name,
+            'last_name': instance.last_name,
+            'field_of_study': profile.field_of_study,
+            'target_role': profile.target_role,
+            'experience_level': profile.experience_level,
+            'preferred_interview_type': profile.preferred_interview_type,
         }
 
     def update(self, instance, validated_data):
         profile_fields = {
-            "field_of_study",
-            "target_role",
-            "experience_level",
-            "preferred_interview_type",
+            'field_of_study',
+            'target_role',
+            'experience_level',
+            'preferred_interview_type',
         }
-        user_fields = []
 
+        user_fields = []
         for field, value in validated_data.items():
             if field in profile_fields:
                 continue
@@ -59,7 +60,8 @@ class AccountProfileSerializer(serializers.Serializer):
         return instance
 
     def create(self, validated_data):
-        raise NotImplementedError("Profile records are updated, not created through this serializer.")
+        raise NotImplementedError('Profile records are updated, not created through this serializer.')
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -69,9 +71,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['username', 'email', 'password']
 
     def create(self, validated_data):
-        user = User.objects.create_user(
+        return User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
-            password=validated_data['password']
+            password=validated_data['password'],
         )
-        return user

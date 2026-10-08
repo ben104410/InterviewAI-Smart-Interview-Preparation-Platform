@@ -15,6 +15,7 @@ import InterviewHistory from "./pages/InterviewHistory";
 import ResumeAnalysis from "./pages/ResumeAnalysis";
 import Statistics from "./pages/Statistics";
 import Profile from "./pages/Profile";
+
 function App() {
   return (
     <BrowserRouter>

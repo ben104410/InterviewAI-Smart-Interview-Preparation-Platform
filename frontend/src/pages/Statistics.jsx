@@ -1,57 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
-
-const localDateKey = (date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
+import { useAuth } from "../context/useAuth";
 
 const scoreOutOfTen = (score) => {
   const value = Number(score);
   if (!Number.isFinite(value)) return 0;
   return Math.min(10, Math.max(0, value > 10 ? value / 10 : value));
-};
-
-const buildActivity = (interviews, range) => {
-  const today = new Date();
-
-  if (range === "monthly") {
-    return Array.from({ length: 6 }, (_, index) => {
-      const month = new Date(today.getFullYear(), today.getMonth() - 5 + index, 1);
-      const key = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
-      return {
-        key,
-        label: month.toLocaleDateString(undefined, { month: "short" }),
-        count: interviews.filter((interview) => {
-          const date = new Date(interview.created_at);
-          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}` === key;
-        }).length,
-      };
-    });
-  }
-
-  const currentWeek = new Date(today);
-  currentWeek.setHours(0, 0, 0, 0);
-  currentWeek.setDate(currentWeek.getDate() - ((currentWeek.getDay() + 6) % 7));
-
-  return Array.from({ length: 8 }, (_, index) => {
-    const week = new Date(currentWeek);
-    week.setDate(week.getDate() - (7 * (7 - index)));
-    const key = localDateKey(week);
-    return {
-      key,
-      label: week.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-      count: interviews.filter((interview) => {
-        const date = new Date(interview.created_at);
-        date.setHours(0, 0, 0, 0);
-        date.setDate(date.getDate() - ((date.getDay() + 6) % 7));
-        return localDateKey(date) === key;
-      }).length,
-    };
-  });
 };
 
 const buildTimeline = (interviews) => {
@@ -119,11 +74,11 @@ const buildLearningPlan = (records) => {
 
 const Statistics = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [interviews, setInterviews] = useState([]);
   const [stats, setStats] = useState({ learning_plan: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activityRange, setActivityRange] = useState("weekly");
 
   const recentInterviews = [
     { name: "Django Developer", score: "8.7/10" },
@@ -195,7 +150,6 @@ const Statistics = () => {
   const weakestRole = roleScores.length ? roleScores[roleScores.length - 1] : null;
   const bestRole = roleScores[0] || null;
   const weakestTopic = topicScores[0] || null;
-  const activity = buildActivity(interviews.filter((interview) => interview.created_at), activityRange);
   const learningPlan = stats.learning_plan || buildLearningPlan(interviews);
   const chartWidth = 760;
   const chartHeight = 250;
@@ -208,14 +162,15 @@ const Statistics = () => {
     y: chartPadding.top + ((10 - point.average) / 10) * plotHeight,
   }));
   const linePath = chartPoints.map((point, index) => `${index ? "L" : "M"}${point.x},${point.y}`).join(" ");
-  const maxActivity = Math.max(1, ...activity.map((item) => item.count));
 
   return (
     <div className="statistics-page">
       <div className="interview-summary-shell">
         <div className="interview-summary-header">
           <div className="welcome-copy">
-            <p className="welcome-label">Good afternoon, Benjamin 👋</p>
+            <p className="welcome-label">
+              Good afternoon, {user?.username || "there"} 👋
+            </p>
             <h2>Ready for your next interview?</h2>
           </div>
           <button className="start-interview-btn compact" onClick={() => navigate("/interview")}>
