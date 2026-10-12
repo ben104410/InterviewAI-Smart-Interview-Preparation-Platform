@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 
 import fitz
 
-from ai_services.gemini import model
+from ai_services.gemini import analyze_resume as _analyze_resume
 
 
 def _extract_docx_text(file_path):
@@ -54,26 +54,4 @@ def extract_text_from_pdf(file_path):
 
 
 def analyze_resume(text):
-    prompt = f"""
-You are a professional HR recruiter and career advisor.
-
-Analyze this resume:
-
-{text}
-
-Return STRICT JSON:
-{
-  "summary": "short summary of candidate",
-  "strengths": "key strengths",
-  "weaknesses": "missing skills or gaps",
-  "suggestions": "how to improve resume",
-  "job_roles": "best suitable job roles"
-}
-
-Rules:
-- Be honest and professional
-- Return ONLY JSON
-"""
-
-    response = model.generate_content(prompt)
-    return response.text.strip()
+    return _analyze_resume(text)

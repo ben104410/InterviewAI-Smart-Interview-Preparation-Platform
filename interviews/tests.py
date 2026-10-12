@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from google.api_core.exceptions import ResourceExhausted
+from google.genai.errors import APIError
 from rest_framework.test import APIClient
 
 from .models import Interview
@@ -22,6 +23,21 @@ class GeminiQuotaHandlingTests(TestCase):
         with patch(
             'interviews.views.generate_interview_question',
             side_effect=ResourceExhausted('quota exhausted'),
+        ):
+            response = self.client.post(
+                '/api/interviews/start/',
+                {'role': 'Python developer'},
+                format='json',
+            )
+
+        self.assertEqual(response.status_code, 429)
+        self.assertIn('quota or rate limit', response.data['detail'])
+        self.assertFalse(Interview.objects.filter(user=self.user).exists())
+
+    def test_start_handles_new_gemini_sdk_quota_errors(self):
+        with patch(
+            'interviews.views.generate_interview_question',
+            side_effect=APIError(429, {'error': {'message': 'quota exhausted'}}),
         ):
             response = self.client.post(
                 '/api/interviews/start/',
