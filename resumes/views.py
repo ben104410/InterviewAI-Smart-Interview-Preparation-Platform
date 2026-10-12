@@ -1,4 +1,5 @@
 import json
+import logging
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -7,6 +8,8 @@ from rest_framework.views import APIView
 from ai_services.gemini import analyze_resume
 from .models import Resume
 from .utils import extract_text_from_pdf
+
+logger = logging.getLogger(__name__)
 
 
 class ResumeUploadView(APIView):
@@ -24,7 +27,8 @@ class ResumeUploadView(APIView):
             result = analyze_resume(text)
             data = json.loads(result)
         except Exception:
-            return Response({'error': 'AI analysis failed', 'raw': str(result) if 'result' in locals() else ''}, status=500)
+            logger.exception("Resume analysis failed for resume %s", resume.pk)
+            return Response({'error': 'AI analysis failed'}, status=500)
 
         resume.analysis = result
         resume.save()

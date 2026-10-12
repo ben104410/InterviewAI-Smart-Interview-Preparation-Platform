@@ -1,14 +1,39 @@
 import json
+import logging
 from collections import defaultdict
 
 from django.db.models import Avg, Count, Max, Min
+from google.api_core.exceptions import GoogleAPICallError, ResourceExhausted
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ai_services.gemini import evaluate_answer, generate_followup, generate_interview_question
+from resumes.models import Resume
 from .models import Interview
 from .serializers import InterviewSerializer
+
+logger = logging.getLogger(__name__)
+
+
+def _gemini_error_response(error):
+    if isinstance(error, ResourceExhausted):
+        logger.warning("Gemini API quota or rate limit was exceeded.")
+        return Response(
+            {
+                'detail': (
+                    'The Gemini API quota or rate limit has been reached. '
+                    'Check your Google AI Studio usage and billing, then try again.'
+                )
+            },
+            status=429,
+        )
+
+    logger.error("Gemini API request failed: %s", type(error).__name__)
+    return Response(
+        {'detail': 'The Gemini API request failed. Please try again later.'},
+        status=502,
+    )
 
 
 def _recommended_action_for_topic(topic_name):
@@ -94,7 +119,10 @@ class GenerateQuestionView(APIView):
         if not role:
             return Response({'error': 'Role is required'}, status=400)
 
-        question = generate_interview_question(role)
+        try:
+            question = generate_interview_question(role)
+        except GoogleAPICallError as error:
+            return _gemini_error_response(error)
         interview = Interview.objects.create(user=request.user, role=role, question=question)
 
         return Response({
@@ -112,7 +140,10 @@ class StartInterviewView(APIView):
         if not role:
             return Response({'error': 'role required'}, status=400)
 
-        question = generate_interview_question(role)
+        try:
+            question = generate_interview_question(role)
+        except GoogleAPICallError as error:
+            return _gemini_error_response(error)
         interview = Interview.objects.create(user=request.user, role=role, question=question)
 
         return Response({
@@ -136,7 +167,10 @@ class EvaluateAnswerView(APIView):
         except Interview.DoesNotExist:
             return Response({'error': 'Interview not found'}, status=404)
 
-        data = evaluate_answer(interview.question, answer)
+        try:
+            data = evaluate_answer(interview.question, answer)
+        except GoogleAPICallError as error:
+            return _gemini_error_response(error)
         if not isinstance(data, dict):
             try:
                 data = json.loads(data)
@@ -162,8 +196,12 @@ class InterviewStatsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        interviews = Interview.objects.filter(user=request.user)
+        interviews = Interview.objects.filter(user=request.user, is_followup=False)
         total = interviews.count()
+        resumes_analyzed = Resume.objects.filter(
+            user=request.user,
+            analysis__isnull=False,
+        ).exclude(analysis='').count()
         avg_score = interviews.aggregate(Avg('score'))['score__avg']
         max_score = interviews.aggregate(Max('score'))['score__max']
         min_score = interviews.aggregate(Min('score'))['score__min']
@@ -175,6 +213,7 @@ class InterviewStatsView(APIView):
 
         return Response({
             'total_interviews': total,
+            'resumes_analyzed': resumes_analyzed,
             'average_score': round(avg_score or 0, 2),
             'highest_score': max_score or 0,
             'lowest_score': min_score or 0,
@@ -198,12 +237,20 @@ class InterviewChatView(APIView):
         except Interview.DoesNotExist:
             return Response({'error': 'not found'}, status=404)
 
-        data = evaluate_answer(interview.role, interview.question, answer)
+        try:
+            data = evaluate_answer(interview.role, interview.question, answer)
+        except GoogleAPICallError as error:
+            return _gemini_error_response(error)
         if not isinstance(data, dict):
             try:
                 data = json.loads(data)
             except Exception:
                 return Response({'error': 'AI invalid JSON', 'raw': str(data)})
+
+        try:
+            followup_question = generate_followup(interview.role, interview.question, answer)
+        except GoogleAPICallError as error:
+            return _gemini_error_response(error)
 
         interview.answer = answer
         interview.feedback = data.get('feedback', '')
@@ -211,7 +258,6 @@ class InterviewChatView(APIView):
         interview.focus_area = data.get('focus_area', 'Other')
         interview.save()
 
-        followup_question = generate_followup(interview.role, interview.question, answer)
         followup = Interview.objects.create(
             user=request.user,
             role=interview.role,

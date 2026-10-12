@@ -1097,6 +1097,37 @@ a {
   padding: 26px 24px;
 }
 
+.activity-summary {
+  margin-bottom: 26px;
+}
+
+.activity-summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.activity-summary-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid rgba(102, 118, 153, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.activity-summary-item span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.activity-summary-item strong {
+  color: var(--text);
+  font-size: 1.5rem;
+}
+
 .dashboard-card h2,
 .statistics-card h2,
 .profile-card h2,
@@ -2020,6 +2051,7 @@ a {
   }
 
   .dashboard-grid,
+  .activity-summary-metrics,
   .profile-layout,
   .profile-edit-layout,
   .hero-panel {

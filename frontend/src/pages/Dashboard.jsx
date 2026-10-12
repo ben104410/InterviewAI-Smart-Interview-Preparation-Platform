@@ -7,6 +7,7 @@ const Dashboard = () => {
 
   const [stats, setStats] = useState({
     total_interviews: 0,
+    resumes_analyzed: 0,
     average_score: 0,
     highest_score: 0,
     lowest_score: 0,
@@ -137,6 +138,26 @@ const Dashboard = () => {
         </div>
 
       </div>
+
+      <section className="dashboard-card activity-summary" aria-labelledby="activity-summary-title">
+        <div className="card-header">
+          <div>
+            <h2 id="activity-summary-title">Preparation activity</h2>
+            <p>Your interview sessions and completed resume analyses.</p>
+          </div>
+        </div>
+
+        <div className="activity-summary-metrics">
+          <div className="activity-summary-item">
+            <span>Interviews conducted</span>
+            <strong>{stats.total_interviews}</strong>
+          </div>
+          <div className="activity-summary-item">
+            <span>Resumes analyzed</span>
+            <strong>{stats.resumes_analyzed ?? 0}</strong>
+          </div>
+        </div>
+      </section>
 
       <div className="dashboard-grid">
 
